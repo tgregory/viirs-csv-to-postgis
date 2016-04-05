@@ -142,7 +142,7 @@ func main() {
 		printTableSchema()
 		return
 	}
-	fname = os.Args[1]
+	fname = flag.Args()[0]
 	file, err := os.Open(fname)
 	defer file.Close()
 	if nil != err {
@@ -152,7 +152,6 @@ func main() {
 	rdr := csv.NewReader(file)
 	// Read header
 	header, err := rdr.Read()
-	fmt.Println(header)
 	if nil != err {
 		fmt.Errorf("Error reading header %s", err.Error())
 		return
