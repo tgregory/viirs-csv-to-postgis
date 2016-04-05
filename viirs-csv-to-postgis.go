@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -134,6 +135,9 @@ SELECT AddGeometryColumn('detections', 'gring_poly', 4326, 'POLYGON', 2);
 
 func main() {
 	var fname string
+	var hasPgid bool
+	flag.BoolVar(&hasPgid, "p", false, "Set if first column is pgid.")
+	flag.Parse()
 	if len(os.Args) < 2 {
 		printTableSchema()
 		return
@@ -147,7 +151,8 @@ func main() {
 	}
 	rdr := csv.NewReader(file)
 	// Read header
-	_, err = rdr.Read()
+	header, err := rdr.Read()
+	fmt.Println(header)
 	if nil != err {
 		fmt.Errorf("Error reading header %s", err.Error())
 		return
@@ -271,6 +276,10 @@ func main() {
 	dnb_point,
 	gring_poly
 	) VALUES `
+	var start int
+	if hasPgid {
+		start = 1
+	}
 	for rec, err = rdr.Read(); nil == err; rec, err = rdr.Read() {
 		var values string
 		if !first {
@@ -279,6 +288,7 @@ func main() {
 			first = false
 		}
 		values += "("
+		rec = rec[start:]
 		for i := 0; i < 109; i++ {
 			if i == 1 || i == 2 || i == 5 || i >= 90 {
 				values += fmt.Sprintf("'%s', ", rec[i])
@@ -298,6 +308,10 @@ func main() {
 		lats := strings.Split(rec[90], ";")
 		values += "ST_SetSRID(ST_MakePolygon(ST_MakeLine(ARRAY["
 		for i := range lons {
+			if i >= len(lons) || i >= len(lats) {
+				fmt.Printf("Lons: '%s', Lats: '%s', LLons: %d, LLats: %d, HLons: %s, HLats: %s, i: %d\n", rec[91], rec[90], len(lons), len(lats), header[91], header[90], i)
+				return
+			}
 			values += fmt.Sprintf("ST_MakePoint(%s, %s), ", lons[i], lats[i])
 		}
 		values += fmt.Sprintf("ST_MakePoint(%s, %s)])), 4326))", lons[0], lats[0])
