@@ -290,9 +290,9 @@ func main() {
 		rec = rec[start:]
 		for i := 0; i < 109; i++ {
 			if i == 1 || i == 2 || i == 5 || i >= 90 {
-				values += fmt.Sprintf("'%s', ", rec[i])
+				values += "'" + rec[i] + "', "
 			} else {
-				values += fmt.Sprintf("%s, ", rec[i])
+				values += rec[i] + ", "
 			}
 		}
 		//Lat_GMTCO
@@ -314,7 +314,9 @@ func main() {
 			values += fmt.Sprintf("ST_MakePoint(%s, %s), ", lons[i], lats[i])
 		}
 		values += fmt.Sprintf("ST_MakePoint(%s, %s)])), 4326))", lons[0], lats[0])
-		query = fmt.Sprintf("%s%s", query, values)
+		query = query + values
+		fmt.Printf("%s", query)
+		query = ""
 	}
 	query += ";\n"
 	fmt.Printf("%s", query)
